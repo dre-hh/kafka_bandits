@@ -1,0 +1,27 @@
+version: '3'
+
+services:
+  zookeeper:
+    image: wurstmeister/zookeeper
+    ports:
+     - "2181:2181"
+  kafka:
+    image: wurstmeister/kafka
+    ports:
+       - "9092:9092"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    depends_on:
+      - zookeeper
+    environment:
+      HOSTNAME_COMMAND: "hostname -i"
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_CREATE_TOPICS: "test:1:1,test-out:1:1"
+  bandits:
+    build: .
+    volumes:
+      - .:/bandits
+      - "${HOME}/.ivy2/cache:/root/.ivy2/cache"
+    depends_on:
+      - zookeeper
+      - kafka
