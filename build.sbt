@@ -7,7 +7,9 @@ libraryDependencies ++= Seq(
    "org.apache.kafka" % "kafka-streams" % "2.0.0",
    "org.apache.kafka" % "kafka-clients" % "2.0.0",
    "org.apache.kafka" %% "kafka-streams-scala" % "2.0.0",
-   "org.scalanlp" %% "breeze" % "0.13.2"
+   "org.scalanlp" %% "breeze" % "0.13.2",
+   "io.vertx" % "vertx-core" % "3.5.4",
+   "io.vertx" %% "vertx-web-scala" % "3.5.4"
 )
 
 val circeVersion = "0.10.0"

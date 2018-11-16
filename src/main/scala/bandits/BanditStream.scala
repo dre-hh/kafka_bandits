@@ -11,7 +11,9 @@ import org.apache.kafka.streams.scala.kstream._
 import org.apache.kafka.streams.state.QueryableStoreTypes
 import org.apache.kafka.streams.{KafkaStreams, StreamsConfig}
 
-object MultiArmBandit extends App {
+import rest
+
+object BanditStream extends App {
   println("MuliarmrBandit")
 
   import Serdes._
@@ -20,6 +22,8 @@ object MultiArmBandit extends App {
   val InputTopic = "events"
   val OutputTopic = "bandit_arms"
   val StoreName = "bandit_arms_store"
+  val rpcPort = 4460
+  val rpcEndpoint = s"bandits:$rpcPort"
 
   lazy val props = {
     val p = new Properties()
@@ -28,6 +32,9 @@ object MultiArmBandit extends App {
     p.put(StreamsConfig.CACHE_MAX_BYTES_BUFFERING_CONFIG, "0")
     p
   }
+
+  val builder: StreamsBuilder = new StreamsBuilder
+  val events: KStream[String, Event] = builder.stream[String, Event](InputTopic)
 
   def start= {
     streams.cleanUp()
@@ -49,6 +56,16 @@ object MultiArmBandit extends App {
     }
   }
 
+  def process = {
+    val banditArms = events.mapValues(processEvent(_))
+      .groupBy((_, arm) => arm.key)
+      .reduce(reduceArmScore)
+    (Materialized.as(StoreName))
+    banditArms.toStream.to(OutputTopic)
+
+    banditArms
+  }
+
   def processEvent(event: Event): Arm = event.action match {
     // increment beta if arm drawn
     case "draw" => Arm(event.issue, event.armLabel, 0, 1, 0)
@@ -64,16 +81,9 @@ object MultiArmBandit extends App {
     arm.copy(alpha=alpha, beta=beta, score=score)
   }
 
-  val builder: StreamsBuilder = new StreamsBuilder
-  val events: KStream[String, Event] = builder.stream[String, Event](InputTopic)
-
-  val banditArms = events.mapValues(processEvent(_))
-    .groupBy((_, arm) => arm.key)
-    .reduce(reduceArmScore)
-  (Materialized.as(StoreName))
-  banditArms.toStream.to(OutputTopic)
-
+  process
   val streams: KafkaStreams = new KafkaStreams(builder.build(), props)
+  new rest.StreamStateServer(streams)
   start
   shutdownHook
 }
