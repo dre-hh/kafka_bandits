@@ -2,7 +2,6 @@ package rest
 
 import io.circe.Encoder
 import io.vertx.scala.ext.web.RoutingContext
-import io.circe.generic.auto._
 import io.circe.syntax._
 
 trait ServerBase  {

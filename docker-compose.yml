@@ -17,7 +17,7 @@ services:
       HOSTNAME_COMMAND: "hostname -i"
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_CREATE_TOPICS: "test:1:1,test-out:1:1"
-  bandits:
+  bandits-stream:
     build: .
     volumes:
       - .:/bandits
@@ -25,3 +25,8 @@ services:
     depends_on:
       - zookeeper
       - kafka
+  bandits-rest:
+    build: .
+    volumes:
+      - .:/bandits
+      - "${HOME}/.ivy2/cache:/root/.ivy2/cache"
