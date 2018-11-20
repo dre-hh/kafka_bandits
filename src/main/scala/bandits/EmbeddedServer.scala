@@ -16,7 +16,7 @@ class EmbeddedServer(streams: KafkaStreams) extends ServerBase {
    }
 
   def getArm(ctx: RoutingContext): Unit = {
-    val sendError = this.sendError(ctx)
+    val sendError = this.sendError(ctx)(_)
     val issueO = ctx.request.getParam("issue")
     val armLabelO = ctx.request.getParam("armLabel")
 
