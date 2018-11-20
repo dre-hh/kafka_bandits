@@ -13,6 +13,8 @@ class BanditsRepository(vertx: Vertx)(implicit ec: ExecutionContext) {
 
   lazy val vertxClient = {
     val options = WebClientOptions()
+      // in a proper setup host and port need to be discovered
+      // kafka-steams metadata api as there can be multiple stream processors
       .setDefaultHost(EmbeddedServer.Host)
       .setDefaultPort(EmbeddedServer.Port)
     WebClient.create(vertx, options)
