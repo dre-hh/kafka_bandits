@@ -9,7 +9,7 @@ import org.apache.kafka.streams.scala.Serdes
 
 import scala.util.Random
 
-class DemoProducer extends App {
+object DemoProducer extends App {
   import Serdes._
   import JsSerdes._
 

@@ -23,10 +23,10 @@ libraryDependencies ++= Seq(
 resolvers += "Sonatype Releases" at "https://oss.sonatype.org/content/repositories/releases/"
 
 lazy val startStream = taskKey[Unit]("starts kafka stream processor")
-startStream := (runMain in Compile).toTask("bandits.StreamApp").value
+startStream := (runMain in Compile).toTask(" bandits.StreamApp").value
 
 lazy val startRestServer = taskKey[Unit]("starts http api server")
-startRestServer := (runMain in Compile).toTask("bandits.RestApp").value
+startRestServer := (runMain in Compile).toTask(" rest.RestApp").value
 
 lazy val produceEvents = taskKey[Unit]("produce some draw and reward events")
-produceEvents := (runMain in Compile).toTask("bandits.DemoProducer").value
+produceEvents := (runMain in Compile).toTask(" bandits.DemoProducer").value

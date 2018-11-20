@@ -12,3 +12,4 @@ RUN \
 RUN mkdir /bandits
 WORKDIR /bandits
 COPY build.sbt /bandits
+RUN sbt update
