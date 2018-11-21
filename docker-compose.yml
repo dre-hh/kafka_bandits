@@ -16,8 +16,8 @@ services:
     environment:
       HOSTNAME_COMMAND: "hostname -i"
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_CREATE_TOPICS: "test:1:1,test-out:1:1"
-  bandits:
+      KAFKA_CREATE_TOPICS: "events:1:1,bandit-arms:1:1"
+  bandits-stream:
     build: .
     volumes:
       - .:/bandits
