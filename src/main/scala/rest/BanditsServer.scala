@@ -2,7 +2,6 @@ package rest
 
 import bandits.Bandit
 import io.vertx.lang.scala.ScalaVerticle
-import io.vertx.scala.core.Vertx
 import io.vertx.scala.ext.web.{Router, RoutingContext}
 import io.circe.generic.auto._
 
@@ -11,10 +10,11 @@ import scala.util.{Success, Failure}
 
 class BanditsServer extends ScalaVerticle with ServerBase {
 
-  val banditsRepo = new BanditsRepository(vertx)
+  var banditsRepo: BanditsRepository = _
 
   override def start: Unit = {
-    val router = Router.router(Vertx.vertx)
+    banditsRepo = new BanditsRepository(vertx)
+    val router = Router.router(vertx)
     router.get("/bandits/:issue").handler(getBandit)
     vertx.createHttpServer.requestHandler(router.accept _).listen(BanditsServer.Port)
   }

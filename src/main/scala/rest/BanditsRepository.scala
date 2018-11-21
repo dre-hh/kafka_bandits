@@ -17,6 +17,7 @@ class BanditsRepository(vertx: Vertx)(implicit ec: ExecutionContext) {
       // kafka-steams metadata api as there can be multiple stream processors
       .setDefaultHost(EmbeddedServer.Host)
       .setDefaultPort(EmbeddedServer.Port)
+    println(vertx)
     WebClient.create(vertx, options)
   }
 
@@ -35,14 +36,14 @@ class BanditsRepository(vertx: Vertx)(implicit ec: ExecutionContext) {
 
   def getArm(issue: String, armLabel: String): Future[Option[Arm]] = {
     vertxClient.get(s"/arms/${issue}/${armLabel}").sendFuture().map { res =>
-     decode[Arm](res.bodyAsString.getOrElse("")).toOption
+      decode[Arm](res.bodyAsString.getOrElse("")).toOption
    }
   }
 }
 
 object BanditsRepository {
-  val runningBandits = Map {
-    "colors" -> List("red", "green", "blue")
+  val runningBandits = Map(
+    "colors" -> List("red", "green", "blue"),
     "buttons" -> List("small", "middle", "big")
-  }
+  )
 }

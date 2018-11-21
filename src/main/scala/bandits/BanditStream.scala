@@ -27,21 +27,21 @@ class BanditStream {
   private val builder: StreamsBuilder = new StreamsBuilder
   private val events: KStream[String, Event] = builder.stream[String, Event](BanditStream.InputTopic)
   createTopology
-  val streams: KafkaStreams =  new KafkaStreams(builder.build(), props)
+  val streams: KafkaStreams = new KafkaStreams(builder.build(), props)
 
-  def start= {
+  def start = {
     streams.cleanUp
     streams.start
     shutdownHook
   }
 
-  private def shutdownHook= {
+  private def shutdownHook = {
     sys.ShutdownHookThread {
       val store = streams.store(BanditStream.StoreName, QueryableStoreTypes.keyValueStore())
       println("Scores on shutdown:")
 
       val iterator = store.all
-      while(iterator.hasNext) {
+      while (iterator.hasNext) {
         val next = iterator.next
         println(s"${next.key}: ${next.value}")
       }
@@ -53,18 +53,22 @@ class BanditStream {
   private def createTopology = {
     val banditArms = events.mapValues(processEvent(_))
       .groupBy((_, arm) => arm.key)
-      .reduce(reduceArmScore)
-    (Materialized.as(BanditStream.StoreName))
+      .reduce(reduceArmScore) {
+        Materialized.as[String, Arm, ByteArrayKeyValueStore](BanditStream.StoreName)
+      }
     banditArms.toStream.to(BanditStream.OutputTopic)
-
+    println(s"NAME: ${banditArms.queryableStoreName}")
     banditArms
   }
 
-  private def processEvent(event: Event): Arm = event.action match {
-    // increment beta if arm drawn
-    case "draw" => Arm(event.issue, event.armLabel, 0, 1, 0)
-    // increment alpha (and decrement beta) if arm rewarded
-    case "reward" => Arm(event.issue, event.armLabel, 1, -1, 0)
+  private def processEvent(event: Event): Arm = {
+    println(s"processing: ${event}")
+    event.action match {
+      // increment beta if arm drawn
+      case "draw" => Arm(event.issue, event.armLabel, 0, 1, 0)
+      // increment alpha (and decrement beta) if arm rewarded
+      case "reward" => Arm(event.issue, event.armLabel, 1, -1, 0)
+    }
   }
 
   private def reduceArmScore(acc: Arm, arm: Arm)= {
@@ -72,7 +76,9 @@ class BanditStream {
     val beta =  math.max(1, acc.beta + arm.beta)
     val score = new Beta(alpha, beta).draw
 
-    arm.copy(alpha=alpha, beta=beta, score=score)
+    val res = arm.copy(alpha=alpha, beta=beta, score=score)
+    println(s"reduced: ${res}")
+    res
   }
 }
 

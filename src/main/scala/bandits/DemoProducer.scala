@@ -21,6 +21,8 @@ object DemoProducer extends App {
     p
   }
 
+  println(implicitly[Serde[Event]].serializer)
+
   val producer = new KafkaProducer[String, Event](
     props,
     implicitly[Serde[String]].serializer,
@@ -34,18 +36,21 @@ object DemoProducer extends App {
       ("green", 100, 60),
       ("blue", 10, 10)
     ).flatMap { case (color, drawCount, rewardCount) => List(
-      (1 to drawCount).map(_ => Event(issue, "draw", color)),
-      (1 to rewardCount).map(_ => Event(issue, "reward", color))
+      (1 to drawCount).map(_ => Event("draw", issue, color)),
+      (1 to rewardCount).map(_ => Event("reward", issue, color))
     ).flatten}
 
-    Random.shuffle(data)
+    //Random.shuffle(data)
+    data
   }
 
   lazy val records = events.map(
-    event =>  new ProducerRecord[String, Event](BanditStream.InputTopic, event.issue, event)
+    event => new ProducerRecord[String, Event](BanditStream.InputTopic, event.issue, event)
   )
 
   records.foreach { record =>
+    println(record.value())
+    Thread.sleep(100)
     producer.send(record, (metadata: RecordMetadata, exception: Exception) => {
       Option(metadata).foreach(md => println(s"Produced offset ${md.offset} on ${md.topic}"))
       Option(exception).foreach(e => println(new Exception(s"ERROR while producing: $e")))

@@ -4,7 +4,7 @@ services:
   zookeeper:
     image: wurstmeister/zookeeper
     ports:
-     - "2181:2181"
+      - "2181:2181"
   kafka:
     image: wurstmeister/kafka
     ports:
@@ -18,10 +18,25 @@ services:
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_CREATE_TOPICS: "events:1:1,bandit-arms:1:1"
   bandits-stream:
+    image: bandits-stream
     build: .
+    ports:
+      - "4460:4460"
     volumes:
       - .:/bandits
       - "${HOME}/.ivy2/cache:/root/.ivy2/cache"
     depends_on:
       - zookeeper
       - kafka
+    command: sbt startStream
+  bandits-server:
+    build: .
+    image: bandits-server
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/bandits
+      - "${HOME}/.ivy2/cache:/root/.ivy2/cache"
+    depends_on:
+      - bandits-stream
+    command: sbt startRestServer
